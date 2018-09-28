@@ -9,14 +9,15 @@ using namespace std;
 
 struct pma {
 	private :
-		vector<int> impl;
-		vector<bool> present;
+		int* impl;
+		int* present;
+		int capacity;
 		int nElems;
 		int chunk_size;
 		int nChunks;
 		int nLevels;
 		int lgn;
-		vector<int>  tmp;
+		int*  tmp;
 		double global_upperbound;
 		void init_vars(int capacity);
 		double upper_threshold_at(int level) const;

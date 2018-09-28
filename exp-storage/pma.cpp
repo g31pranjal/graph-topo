@@ -1,6 +1,8 @@
 #include <vector> 
 #include <assert.h> 
 #include <stdio.h> 
+#include <stdlib.h> 
+#include <string.h> 
 #include "pma.h"
 
 using namespace std;
@@ -22,9 +24,11 @@ pma::pma(int capacity = 2, double gub = 0.7) : nElems(0) {
 	assert(1 << log2(capacity) == capacity);
 
 	this->init_vars(capacity);
-	this->impl.resize(capacity);
-	this->present.resize(capacity);
+	this->impl = (int *)malloc(capacity*sizeof(int));
+	this->present = (int *)malloc(capacity*sizeof(int));
+	memset(this->present, 0, capacity*sizeof(int));
 	this->global_upperbound = gub;
+	this->tmp = NULL;
 }
 
 void pma::init_vars(int capacity) {
@@ -33,6 +37,7 @@ void pma::init_vars(int capacity) {
 	this->nChunks = capacity / this->chunk_size;
 	this->nLevels = log2(this->nChunks);
 	this->lgn = log2(capacity);
+	this->capacity = capacity;
 	// printf("init_vars::capacity: %d, nElems: %d, chunk_size: %d, nChunks: %d\n", capacity, nElems, chunk_size, nChunks);
 }
 
@@ -43,7 +48,7 @@ double pma::upper_threshold_at(int level) const {
 
 int pma::left_interval_boundary(int i, int interval_size) {
 	assert(interval_size == (1 << log2(interval_size)));
-	assert(i < (int)this->impl.size());
+	assert(i < (int)this->capacity);
 	int q = i / interval_size;
 	int boundary = q * interval_size;
 	// printf("left_interval_boundary(%d, %d) = %d\n", i, interval_size, boundary);
@@ -51,22 +56,27 @@ int pma::left_interval_boundary(int i, int interval_size) {
 }
 
 void pma::resize(int capacity) {
-	assert(capacity > this->impl.size());
+	assert(capacity > this->capacity);
 	assert(1 << log2(capacity) == capacity);
 
-	vector<int> tmpi(capacity);
-	vector<bool> tmpp(capacity);
+	int *tmpi = (int *)malloc(capacity*sizeof(int));
+	int *tmpp = (int *)malloc(capacity*sizeof(int));
+	memset(tmpp, 0, capacity*sizeof(int));
+
 	double d = (double)capacity / this->nElems;
 	int ctr = 0;
-	for (int i = 0; i < (int)this->impl.size(); ++i) {
+	for (int i = 0; i < (int)this->capacity; ++i) {
 		if (this->present[i]) {
 			int idx = d*(ctr++);
 			tmpp[idx] = true;
 			tmpi[idx] = this->impl[i];
 		}
 	}
-	this->impl.swap(tmpi);
-	this->present.swap(tmpp);
+
+	free(this->impl);
+	free(this->present);
+	this->impl = tmpi;
+	this->present = tmpp;
 	this->init_vars(capacity);
 }
 
@@ -92,7 +102,7 @@ int pma::val_in_chunk(int l, int v) {
 int pma::lower_bound(int v) {
 	int i;
 	if (this->nElems == 0) {
-		i = this->impl.size();
+		i = this->capacity;
 	} 
 	else {
 		int l = 0, r = this->nChunks;
@@ -112,52 +122,67 @@ int pma::lower_bound(int v) {
 }
 
 void pma::insert_in_window(int l, int v) {
-	tmp.clear();
-	tmp.reserve(this->chunk_size);
+	this->tmp = (int *)malloc(this->chunk_size*sizeof(int));
+	int ntmp = 0;
+	bool inserted = false;
 	for (int i = l; i < l + this->chunk_size; ++i) {
 		if (this->present[i]) {
-			this->present[i] = false;
-			tmp.push_back(this->impl[i]);
+			if(!inserted && this->impl[i] >= v) {
+				this->tmp[ntmp++] = v;
+				i--;
+				inserted = true;
+				continue;
+			}
+			this->present[i] = 0;
+			this->tmp[ntmp++] = this->impl[i];
 		}
-	}
-	vector<int>::iterator iter = std::lower_bound(tmp.begin(), tmp.end(), v);
-	tmp.insert(iter, v);
 
-	for (int i = 0; i < tmp.size(); ++i) {
-		this->present[l + i] = true;
-		this->impl[l + i] = tmp[i];
 	}
+	if(!inserted)
+		this->tmp[ntmp++] = v;
+
+	printf("chunck :: ");
+	for(int i=0;i<ntmp;i++)
+		printf("%d ", tmp[i]);
+	printf("\n");
+
+	for (int i = 0; i < ntmp; ++i) {
+		this->present[l + i] = 1;
+		this->impl[l + i] = this->tmp[i];
+	}
+	free(this->tmp);
 	++this->nElems;
 }
 
 void pma::rebalance_interval(int left, int level) {
-	printf("rebalance_interval(%d, %d)\n", left, level);
+	// printf("rebalance_interval(%d, %d)\n", left, level);
 	int w = (1 << level) * this->chunk_size;
-	tmp.clear();
-	tmp.reserve(w);
+	this->tmp = (int *)malloc(sizeof(int)*w);
+	int ntmp = 0;
 	for (int i = left; i < left + w; ++i) {
 		if (this->present[i]) {
-			tmp.push_back(this->impl[i]);
-			this->present[i] = false;
+			this->tmp[ntmp++] = this->impl[i];
+			this->present[i] = 0;
 		}
 	}
-	double m = (double)(1<<level)*chunk_size / (double)tmp.size();
+	double m = (double)(1<<level)*chunk_size / (double)ntmp;
 	assert(m >= 1.0);
-	for (int i = 0; i < tmp.size(); ++i) {
+	for (int i = 0; i < ntmp; ++i) {
 		int k = i * m + left;
 		assert(k < left + w);
-		this->present[k] = true;
+		this->present[k] = 1;
 		this->impl[k] = tmp[i];
 	}
+	free(this->tmp);
 }
 
 void pma::insert(int v) {
 
 	int i = lower_bound(v);
-	i = i == this->impl.size() ? i-1 : i;
+	i = i == this->capacity ? i-1 : i;
 
 	assert(i > -1);
-	assert(i < this->impl.size());
+	assert(i < this->capacity);
 
 	int w = chunk_size;
 	int level = 0;
@@ -174,7 +199,7 @@ void pma::insert(int v) {
 			w *= 2;
 			level += 1;
 			if (level > this->nLevels) {
-				this->resize(2 * this->impl.size());
+				this->resize(2 * this->capacity);
 				this->insert(v);
 				return;
 			}
@@ -189,9 +214,46 @@ void pma::insert(int v) {
 } 
 
 void pma::print() {
-	for (int i = 0; i < (int)this->impl.size(); ++i) {
-		printf("%3d ", this->present[i] ? this->impl[i] : -1);
+	for (int i = 0; i < (int)this->capacity; ++i) {
+		printf("%3d ", this->present[i] == 1 ? this->impl[i] : -1);
 	}
 	printf("\n");
+}
+
+int main() {
+
+	pma obj;
+
+	obj.insert(80);
+	obj.print();
+    obj.insert(50);
+	obj.print();
+    obj.insert(70);
+	obj.print();
+    obj.insert(90);
+	obj.print();
+    obj.insert(65);
+	obj.print();
+	obj.print();
+    obj.insert(85);
+	obj.print();
+    obj.insert(10);
+	obj.print();
+    obj.insert(21);
+	obj.print();
+    obj.insert(22);
+	obj.print();
+    obj.insert(20);
+	obj.print();
+    obj.insert(24);
+	obj.print();
+    obj.insert(15);
+	obj.print();
+    obj.insert(17);
+	obj.print();
+    obj.insert(23);
+	obj.print();
+    
+
 }
 
