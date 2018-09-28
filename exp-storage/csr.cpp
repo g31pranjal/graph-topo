@@ -4,6 +4,7 @@
 
 using namespace std;
 
+
 void csr::expandNodeList() {
 	int oldSize = lNodeList;
 	int newSize = oldSize*multiplier;
@@ -21,6 +22,7 @@ void csr::expandNodeList() {
 	refList = newRefList;
 	lNodeList = newSize;
 }
+
 
 void csr::expandEdgeList() {
 	int oldSize = lEdgeList;
@@ -54,6 +56,21 @@ csr::csr() {
 	memset(refList, 0, deflength*sizeof(int));
 	lNodeList = deflength;
 }
+
+csr::csr(int maxNodes) {
+	deflength = 2;
+	multiplier = 1.5;
+	lEdgeList = 0;
+	nNodes = 0;
+	nEdges = 0;
+
+	nodeList = (int *)malloc((maxNodes+1)*sizeof(int));
+	memset(nodeList, 0, (maxNodes+1)*sizeof(int));
+	refList = (int *)malloc((maxNodes+1)*sizeof(int));
+	memset(refList, 0, (maxNodes+1)*sizeof(int));
+	lNodeList = (maxNodes+1);
+}
+
 
 void csr::insert(int src, int dest) {
 
@@ -121,19 +138,81 @@ void csr::insert(int src, int dest) {
 	}
 }
 
-void csr::print() {
-	for(int i=0;i<nNodes;i++) {
-		int start = refList[i];
-		int end;
-		if(i==nNodes-1)
-			end = nEdges;
-		else
-			end = refList[i+1];
+void csr::insertInFixedNodelist(int src, int dest) {
 
-		cout<<nodeList[i]<<","<<refList[i]<<" -> ";
-		for(int j=start;j<end;j++)
-			cout<<edgeList[j]<<" ";
-		cout<<"\n"; 
+	if(lEdgeList == nEdges) 
+		expandEdgeList();
+
+	if(nodeList[src] == 0) {
+		// no entry !!
+		nodeList[src] = src;
+		nNodes++;
+		int i = src+1;
+		int nextEleAt = -1;
+		for(;i<lNodeList;i++)
+			if(nodeList[i] != 0) {
+				if(nextEleAt == -1)
+					nextEleAt = i;
+				refList[i]++;
+			}
+		refList[src] = nextEleAt == -1 ? nEdges : refList[nextEleAt] - 1;
+		
+		for(int i = nEdges; i>refList[src];i--)
+			edgeList[i] = edgeList[i-1];
+		edgeList[refList[src]] = dest;
+		nEdges++;
 	}
+	else {
+		int start = refList[src];
+		int i = src+1;
+		int nextEleAt = -1;
+		for(;i<lNodeList;i++)
+			if(nodeList[i] != 0) {
+				if(nextEleAt == -1)
+					nextEleAt = i;
+				refList[i]++;
+			}
+		int end = nextEleAt == -1 ? nEdges : refList[nextEleAt] - 1;
+
+		// cout << start << ", " << end << "\n";
+
+		int smallId = start - 1;
+		for(int i=start;i<end;i++) {
+			if(edgeList[i] < dest) 
+				smallId = i;
+		}
+		int insertAt = smallId + 1;
+
+		for(int i=nEdges;i>insertAt;i--)
+			edgeList[i] = edgeList[i-1];
+		edgeList[insertAt] = dest;
+		nEdges++;
+		
+	}
+
+}
+
+
+void csr::print() {
+	for(int i = 0; i < lNodeList; i++) {
+		if(nodeList[i] != 0) {
+			int start = refList[i];
+			int nextEleAt = -1;
+			for(int j=i+1;j<lNodeList;j++) 
+				if(nodeList[j] != 0) {
+					nextEleAt = j;
+					break;
+				}
+			int end = nextEleAt == -1 ? nEdges : refList[nextEleAt];
+
+			cout<<nodeList[i]<<","<<refList[i]<<" -> ";
+			for(int j=start;j<end;j++)
+				cout<<edgeList[j]<<" ";
+			cout<<"\n"; 
+		}
+	}
+	for(int i=0;i<lEdgeList;i++) 
+		cout << edgeList[i] << " ";
+	cout << "\n";
 	cout<<"---\n";
 }

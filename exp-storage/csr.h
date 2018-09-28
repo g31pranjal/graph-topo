@@ -25,7 +25,9 @@ class csr : public graphCon {
 	public :
 
 		csr();
+		csr(int maaxNodes);
 		void insert(int src, int dest);
+		void insertInFixedNodelist(int src, int dest);
 		void print();
 
 };

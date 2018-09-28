@@ -34,7 +34,11 @@ class adjList : public graphCon {
 	public :
 
 		adjList();
+		
+		adjList(int MaxNode);
+
 		void insert(int src, int dest);
+		void insertInFixedNodelist (int src, int dest);
 		void print();
 
 };
