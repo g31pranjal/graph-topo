@@ -53,7 +53,7 @@ void adjPma::insert(int src, int dest) {
 
 		adjNodePma* n = new adjNodePma();
 		n->val = src;
-		n->edgeList = new pma(deflength, 0.7);
+		n->edgeList = new pma(deflength, 0.9);
 		n->edgeList->insert(dest);
 
 		if(nNodes+1 > lNodeList) 

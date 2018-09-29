@@ -37,7 +37,7 @@ void pma::init_vars(int capacity) {
 	this->nLevels = log2(this->nChunks);
 	this->lgn = log2(capacity);
 	this->capacity = capacity;
-	// printf("init_vars::capacity: %d, nElems: %d, chunk_size: %d, nChunks: %d\n", capacity, nElems, chunk_size, nChunks);
+	// printf("init_vars:: capacity: %d, nElems: %d, chunk_size: %d, nChunks: %d\n", capacity, nElems, chunk_size, nChunks);
 }
 
 double pma::upper_threshold_at(int level) const {
@@ -79,14 +79,19 @@ void pma::resize(int capacity) {
 	this->init_vars(capacity);
 }
 
-void pma::get_interval_stats(int left, int level, bool &in_limit	, int &sz) {
+void pma::get_interval_stats(int left, int level, bool &in_limit, int &sz) {
 	double t = upper_threshold_at(level);
 	int w = (1 << level) * this->chunk_size;
 	sz = 0;
-	for (int i = left; i < left + w; ++i) 
+	for (int i = left; i < left + w; ++i) { 
 		sz += this->present[i] ? 1 : 0;
+		// if(this->present[i])
+		// 	printf("element present at index : %d\n", i);
+	}
 	double q = (double)(sz+1) / double(w);
 	in_limit = q <= t;
+	// printf("%f , %f \
+	n", q, t);
 }
 
 int pma::val_in_chunk(int l, int v) {
@@ -140,14 +145,19 @@ void pma::insert_in_window(int l, int v) {
 	if(!inserted)
 		this->tmp[ntmp++] = v;
 
-	double m = (double)this->chunk_size / (double)ntmp;
-	assert(m >= 1.0);
-	for (int i = 0; i < ntmp; ++i) {
-		int k = i * m + l;
-		assert(k < l + this->chunk_size);
-		this->present[k] = 1;
-		this->impl[k] = tmp[i];
+	for(int i=0;i<ntmp;i++) {
+		this->present[l+i] = 1;
+		this->impl[l+i] = tmp[i];
 	}
+
+	// double m = (double)this->chunk_size / (double)ntmp;
+	// assert(m >= 1.0);
+	// for (int i = 0; i < ntmp; ++i) {
+	// 	int k = i * m + l;
+	// 	assert(k < l + this->chunk_size);
+	// 	this->present[k] = 1;
+	// 	this->impl[k] = tmp[i];
+	// }
 	free(this->tmp);
 	++this->nElems;
 }
@@ -172,6 +182,7 @@ void pma::rebalance_interval(int left, int level) {
 		this->impl[k] = tmp[i];
 	}
 	free(this->tmp);
+	// this->print();
 }
 
 void pma::insert(int v) {
@@ -220,37 +231,47 @@ void pma::print() {
 
 // int main() {
 
-// 	pma obj;
+// 	pma obj(2,0.9);
 
-// 	obj.insert(80);
-// 	obj.print();
-//     obj.insert(50);
-// 	obj.print();
-//     obj.insert(70);
-// 	obj.print();
-//     obj.insert(90);
-// 	obj.print();
-//     obj.insert(65);
-// 	obj.print();
-// 	obj.print();
-//     obj.insert(85);
-// 	obj.print();
-//     obj.insert(10);
-// 	obj.print();
-//     obj.insert(21);
-// 	obj.print();
-//     obj.insert(22);
-// 	obj.print();
-//     obj.insert(20);
-// 	obj.print();
-//     obj.insert(24);
-// 	obj.print();
-//     obj.insert(15);
-// 	obj.print();
-//     obj.insert(17);
-// 	obj.print();
-//     obj.insert(23);
-// 	obj.print();
+// 	for(int i=0;i<50000;i++) {
+// 		int r = rand()%50000000;
+// 		printf("Inserting %d ...\n", r);
+// 		obj.insert(r);
+// 		obj.print();
+// 		printf("----------------------------------------------------\n");
+// 	}
+
+// 	// printf("%d", rand());
+
+// 	// obj.insert(80);
+// 	// obj.print();
+//  //    obj.insert(50);
+// 	// obj.print();
+//  //    obj.insert(70);
+// 	// obj.print();
+//  //    obj.insert(90);
+// 	// obj.print();
+//  //    obj.insert(65);
+// 	// obj.print();
+// 	// obj.print();
+//  //    obj.insert(85);
+// 	// obj.print();
+//  //    obj.insert(10);
+// 	// obj.print();
+//  //    obj.insert(21);
+// 	// obj.print();
+//  //    obj.insert(22);
+// 	// obj.print();
+//  //    obj.insert(20);
+// 	// obj.print();
+//  //    obj.insert(24);
+// 	// obj.print();
+//  //    obj.insert(15);
+// 	// obj.print();
+//  //    obj.insert(17);
+// 	// obj.print();
+//  //    obj.insert(23);
+// 	// obj.print();
     
 
 // }
