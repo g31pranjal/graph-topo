@@ -39,17 +39,26 @@ adjPma::adjPma() {
 
 void adjPma::insert(int src, int dest) {
 
-	int smallId = -1;
-	int foundAt = -1;
-	for(int i=0;i<nNodes;i++) {
-		if(nodeList[i]->val < src) 
-			smallId = i;
-		if(nodeList[i]->val == src) { 
-			foundAt = i;
-			break;
-		}
+	int l = 0;
+	int r = nNodes;
+	int m;
+	while(l != r) {
+		m = l + (r - l)/2;
+		if(nodeList[m]->val < src)
+			l = m+1;
+		else 
+			r = m;
 	}
-	if(foundAt == -1) {
+
+	if(l != nNodes && nodeList[l]->val == src) {
+		
+		pma* el = nodeList[l]->edgeList;
+		el->insert(dest);
+
+	}
+
+	else {
+		int insertAt = l;
 
 		adjNodePma* n = new adjNodePma();
 		n->val = src;
@@ -59,20 +68,12 @@ void adjPma::insert(int src, int dest) {
 		if(nNodes+1 > lNodeList) 
 			expandNodeList();
 
-		int insertAt = smallId+1;
-
 		for(int i = nNodes-1;i >= insertAt;i--) {
 			nodeList[i+1] = nodeList[i];
 		}
 		nodeList[insertAt] = n;
 		nNodes++;
-	}
-
-	else {
-
-		pma* el = nodeList[foundAt]->edgeList;
-		el->insert(dest);
-
+		
 	}
 	return;
 }
@@ -87,3 +88,15 @@ void adjPma::print() {
 	}
 	cout<<"---\n";
 }
+
+
+// int main() {
+
+// 	adjPma a;
+
+// 	a.insert(1,2);
+// 	a.insert(5,2);
+// 	a.insert(3,6);
+// 	a.print();
+
+// }

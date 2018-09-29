@@ -11,9 +11,8 @@ using namespace std;
 
 int main() {
 
-	adjPma ob;
 	// adjList ob;
-	// csr ob;
+	csr ob;
 	
 	int startNode, endNode, edges;
 	cin >> startNode >> endNode >> edges;

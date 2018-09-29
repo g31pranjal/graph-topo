@@ -57,26 +57,50 @@ csr::csr() {
 
 void csr::insert(int src, int dest) {
 
-
 	if(lEdgeList == nEdges) 
 		expandEdgeList();
 	
-
-	int foundAt = -1;
-	int smallId = -1;
-	for(int i=0;i<nNodes;i++) {
-		if(nodeList[i] < src)
-			smallId = i;
-		if(nodeList[i] == src) {
-			foundAt = i;
-			break;
-		}
+	int l = 0;
+	int r = nNodes;
+	int m;
+	while(l != r) {
+		m = l + (r - l)/2;
+		if(nodeList[m] < src)
+			l = m+1;
+		else 
+			r = m;
 	}
 
-	if(foundAt == -1) {
+	if(l != nNodes && nodeList[l] == src) {
+
+		int start = refList[l];
+		int end;
+		if(l == nNodes-1)
+			end = nEdges;
+		else
+			end = refList[l+1];
+		
+		for(int i = l+1;i<nNodes;i++)
+			refList[i]++;
+
+		int smallId = start - 1;
+		for(int i=start;i<end;i++) {
+			if(edgeList[i] < dest) 
+				smallId = i;
+		}
+		int insertAt = smallId + 1;
+
+		for(int i=nEdges;i>insertAt;i--)
+			edgeList[i] = edgeList[i-1];
+		edgeList[insertAt] = dest;
+		nEdges++;
+
+	}
+	else {
+		
 		if(lNodeList == nNodes) 
 			expandNodeList();
-		int insertAt = smallId + 1;
+		int insertAt = l;
 
 		for(int i=nNodes;i>insertAt;i--) {
 			nodeList[i] = nodeList[i-1];
@@ -92,32 +116,7 @@ void csr::insert(int src, int dest) {
 			edgeList[i] = edgeList[i-1];
 		edgeList[eInsertAt] = dest;
 		nEdges++;
-
-	}
-	else {
 		
-		int start = refList[foundAt];
-		int end;
-		if(foundAt == nNodes-1)
-			end = nEdges;
-		else
-			end = refList[foundAt+1];
-		
-		for(int i = foundAt+1;i<nNodes;i++)
-			refList[i]++;
-
-		int smallId = start - 1;
-		for(int i=start;i<end;i++) {
-			if(edgeList[i] < dest) 
-				smallId = i;
-		}
-		int insertAt = smallId + 1;
-
-		for(int i=nEdges;i>insertAt;i--)
-			edgeList[i] = edgeList[i-1];
-		edgeList[insertAt] = dest;
-		nEdges++;
-
 	}
 }
 
