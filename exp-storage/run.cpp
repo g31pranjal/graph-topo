@@ -11,8 +11,8 @@ using namespace std;
 
 int main() {
 
-	// adjList ob;
 	csr ob;
+	// csr ob;
 	
 	int startNode, endNode, edges;
 	cin >> startNode >> endNode >> edges;
