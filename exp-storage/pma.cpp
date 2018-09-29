@@ -1,4 +1,3 @@
-#include <vector> 
 #include <assert.h> 
 #include <stdio.h> 
 #include <stdlib.h> 
@@ -141,14 +140,13 @@ void pma::insert_in_window(int l, int v) {
 	if(!inserted)
 		this->tmp[ntmp++] = v;
 
-	printf("chunck :: ");
-	for(int i=0;i<ntmp;i++)
-		printf("%d ", tmp[i]);
-	printf("\n");
-
+	double m = (double)this->chunk_size / (double)ntmp;
+	assert(m >= 1.0);
 	for (int i = 0; i < ntmp; ++i) {
-		this->present[l + i] = 1;
-		this->impl[l + i] = this->tmp[i];
+		int k = i * m + l;
+		assert(k < l + this->chunk_size);
+		this->present[k] = 1;
+		this->impl[k] = tmp[i];
 	}
 	free(this->tmp);
 	++this->nElems;
@@ -220,40 +218,40 @@ void pma::print() {
 	printf("\n");
 }
 
-int main() {
+// int main() {
 
-	pma obj;
+// 	pma obj;
 
-	obj.insert(80);
-	obj.print();
-    obj.insert(50);
-	obj.print();
-    obj.insert(70);
-	obj.print();
-    obj.insert(90);
-	obj.print();
-    obj.insert(65);
-	obj.print();
-	obj.print();
-    obj.insert(85);
-	obj.print();
-    obj.insert(10);
-	obj.print();
-    obj.insert(21);
-	obj.print();
-    obj.insert(22);
-	obj.print();
-    obj.insert(20);
-	obj.print();
-    obj.insert(24);
-	obj.print();
-    obj.insert(15);
-	obj.print();
-    obj.insert(17);
-	obj.print();
-    obj.insert(23);
-	obj.print();
+// 	obj.insert(80);
+// 	obj.print();
+//     obj.insert(50);
+// 	obj.print();
+//     obj.insert(70);
+// 	obj.print();
+//     obj.insert(90);
+// 	obj.print();
+//     obj.insert(65);
+// 	obj.print();
+// 	obj.print();
+//     obj.insert(85);
+// 	obj.print();
+//     obj.insert(10);
+// 	obj.print();
+//     obj.insert(21);
+// 	obj.print();
+//     obj.insert(22);
+// 	obj.print();
+//     obj.insert(20);
+// 	obj.print();
+//     obj.insert(24);
+// 	obj.print();
+//     obj.insert(15);
+// 	obj.print();
+//     obj.insert(17);
+// 	obj.print();
+//     obj.insert(23);
+// 	obj.print();
     
 
-}
+// }
 
