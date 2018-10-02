@@ -7,7 +7,7 @@
 using namespace std;
 
 
-int log2(int n) {
+int pma::log2(int n) {
 	int lg2 = 0;
 	while (n > 1) {
 		n /= 2;

@@ -9,7 +9,16 @@ using namespace std;
 
 struct pma_for_csr {
 	private :
-		int* impl;
+
+		int **wrapper;
+
+		typedef struct comp {
+			int val;
+			int typ; // type : 0 for normal, 1 for backref
+			comp(int a, int b) : val(a), typ(b) {}
+		} ent;
+
+		ent** impl;
 		int* present;
 		int capacity;
 		int nElems;
@@ -17,25 +26,28 @@ struct pma_for_csr {
 		int nChunks;
 		int nLevels;
 		int lgn;
-		int*  tmp;
+		ent**  tmp;
 		double global_upperbound;
 		void init_vars(int capacity);
 		double upper_threshold_at(int level) const;
 		int left_interval_boundary(int i, int interval_size);
 		void resize(int capacity);
-		void get_interval_stats(int left, int level, bool &in_limit	, int &sz);
+		void get_interval_stats(int left, int level, bool &in_limit	, int &sz, int nos);
 		int val_in_chunk(int l, int v);
+		void insert_in_window(int rl, int rh, int l, int v);
 		int lower_bound(int v);
-		void insert_in_window(int l, int v);
+		// will be as it is.
 		void rebalance_interval(int left, int level);
+		int log2(int n);
+		int insert_s(ent * s, int loc);
 
 	public :
-		pma_for_csr(int capacity, double gub);
-		void insert(int v);
+		pma_for_csr(int ** reflistadr, int capacity, double gub);
+		void insert(int l, int v);
+		void firstInsert(int l, int cas, int v, int nref);
 		void print();
 
 };
 
-int log2(int n);
 
 #endif

@@ -28,6 +28,7 @@ struct pma {
 		int lower_bound(int v);
 		void insert_in_window(int l, int v);
 		void rebalance_interval(int left, int level);
+		int log2(int n);
 
 	public :
 		pma(int capacity, double gub);
@@ -36,6 +37,5 @@ struct pma {
 
 };
 
-int log2(int n);
 
 #endif

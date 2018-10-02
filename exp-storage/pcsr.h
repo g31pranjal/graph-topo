@@ -1,4 +1,5 @@
 #include "graphConnectivityStructure.h"
+#include "pma_for_csr.h"
 
 #ifndef PCSR
 #define PCSR
@@ -15,15 +16,12 @@ class pcsr : public graphCon {
 		double multiplier;
 		int lNodeList;
 		int nNodes;
-		int nEdges;
 
 		void expandNodeList();
-		void expandEdgeList();
-
 
 	public :
 
-		csr();
+		pcsr();
 		void insert(int src, int dest);
 		void print();
 

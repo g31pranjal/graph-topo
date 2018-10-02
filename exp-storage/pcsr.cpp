@@ -1,48 +1,46 @@
 #include "pcsr.h"
+#include "pma_for_csr.h"
 #include <iostream>
 #include <string.h>
 
 using namespace std;
 
-void csr::expandNodeList() {
-	int oldSize = lNodeList;
+
+void pcsr::expandNodeList() {
+	int oldSize = this->lNodeList;
 	int newSize = oldSize*multiplier;
 	int *newNodeList = (int *)malloc(newSize*sizeof(int));
 	memset(newNodeList, 0, newSize*sizeof(int));
 	int *newRefList = (int *)malloc(newSize*sizeof(int));
 	memset(newRefList, 0, newSize*sizeof(int));
-	for(int i=0;i<nNodes;i++) {
+	for(int i = 0; i < this->nNodes; i++) {
 		newNodeList[i] = nodeList[i];
 		newRefList[i] = refList[i];
 	}
-	free(nodeList);
-	free(refList);
-	nodeList = newNodeList;
-	refList = newRefList;
-	lNodeList = newSize;
+	free(this->nodeList);
+	free(this->refList);
+	this->nodeList = newNodeList;
+	this->refList = newRefList;
+	this->lNodeList = newSize;
 }
 
 
-csr::csr() {
-	deflength = 2;
-	multiplier = 1.5;
-	lNodeList = 0;
-	lEdgeList = 0;
-	nNodes = 0;
-	nEdges = 0;
+pcsr::pcsr() {
+	this->deflength = 2;
+	this->multiplier = 1.5;
+	this->lNodeList = 0;
+	this->nNodes = 0;
 
-	nodeList = (int *)malloc(deflength*sizeof(int));
+	this->nodeList = (int *)malloc(deflength*sizeof(int));
 	memset(nodeList, 0, deflength*sizeof(int));
-	refList = (int *)malloc(deflength*sizeof(int));
+	this->refList = (int *)malloc(deflength*sizeof(int));
 	memset(refList, 0, deflength*sizeof(int));
-	lNodeList = deflength;
+	this->lNodeList = deflength;
+	this->edgeList = new pma_for_csr(&refList, 2, 0.9);
 }
 
 
-void csr::insert(int src, int dest) {
-
-	if(lEdgeList == nEdges) 
-		expandEdgeList();
+void pcsr::insert(int src, int dest) {
 	
 	int l = 0;
 	int r = nNodes;
@@ -55,68 +53,82 @@ void csr::insert(int src, int dest) {
 			r = m;
 	}
 
+	printf("insert called... l : %d, nNodes : %d\n", l, nNodes);
+
 	if(l != nNodes && nodeList[l] == src) {
-
-		int start = refList[l];
-		int end;
-		if(l == nNodes-1)
-			end = nEdges;
-		else
-			end = refList[l+1];
-		
-		for(int i = l+1;i<nNodes;i++)
-			refList[i]++;
-
-		int smallId = start - 1;
-		for(int i=start;i<end;i++) {
-			if(edgeList[i] < dest) 
-				smallId = i;
-		}
-		int insertAt = smallId + 1;
-
-		for(int i=nEdges;i>insertAt;i--)
-			edgeList[i] = edgeList[i-1];
-		edgeList[insertAt] = dest;
-		nEdges++;
-
+		edgeList->insert(refList[l], dest);
 	}
 	else {
-		
-		if(lNodeList == nNodes) 
-			expandNodeList();
-		int insertAt = l;
 
-		for(int i=nNodes;i>insertAt;i--) {
-			nodeList[i] = nodeList[i-1];
-			refList[i] = refList[i-1] + 1;
+		if(nNodes > lNodeList) { 
+			expandNodeList();
+		}
+
+		// shift elements of the nodelist to make roam for new element.
+		int insertAt = l;
+		for(int i = this->nNodes-1;i >= insertAt;i--) {
+			nodeList[i+1] = nodeList[i];
 		}
 		nodeList[insertAt] = src;
-		if(insertAt==nNodes)
-			refList[insertAt] = nEdges;
-		nNodes++;
+		this->nNodes++;
 
-		int eInsertAt = refList[insertAt];
-		for(int i=nEdges;i>eInsertAt;i--)
-			edgeList[i] = edgeList[i-1];
-		edgeList[eInsertAt] = dest;
-		nEdges++;
+		if(nNodes - 1 == 0) {
+			// case of no elements
+			printf("case : no elements in nodelist\n");
+			edgeList->firstInsert(0, 1, dest, insertAt);
+		}
+		else if(l == nNodes - 1) {
+			// case of storing at the end 
+			printf("case : inserting element at end of nodelist\n");
+			edgeList->firstInsert(-1, 2, dest, insertAt);
+		}
+		else {
+			// storing in the middle.
+			printf("3\n");
+			edgeList->firstInsert(refList[insertAt], 3, dest, insertAt);
+		}
+
+		
+		
+
+		// if(l == nNodes)
+		// 	l = nNodes - 1;
+		
+		// refList[insertAt] = 0;
+		// nNodes++;
+
+		// edgeList.firstInsert()
+
+		// int insertAt = l;
+
+		// adjNodePma* n = new adjNodePma();
+		// n->val = src;
+		// n->edgeList = new pma(deflength, 0.9);
+		// n->edgeList->insert(dest);
+
+
 		
 	}
 }
 
-void csr::print() {
-	for(int i=0;i<nNodes;i++) {
-		int start = refList[i];
-		int end;
-		if(i==nNodes-1)
-			end = nEdges;
-		else
-			end = refList[i+1];
+void pcsr::print() {
 
-		cout<<nodeList[i]<<","<<refList[i]<<" -> ";
-		for(int j=start;j<end;j++)
-			cout<<edgeList[j]<<" ";
-		cout<<"\n"; 
+	printf("nodes : %d\n", nNodes);
+
+	for(int i=0;i<nNodes;i++) {
+		// int start = refList[i];
+		// int end;
+		// if(i==nNodes-1)
+		// 	end = nEdges;
+		// else
+		// 	end = refList[i+1];
+
+		cout<<nodeList[i]<<" , "<<refList[i]<<"\n";
+		this->edgeList->print();
+		// for(int j=start;j<end;j++)
+		// 	cout<<edgeList[j]<<" ";
+		// cout<<"\n"; 
 	}
 	cout<<"---\n";
 }
+
