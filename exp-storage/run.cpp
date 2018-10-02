@@ -1,3 +1,4 @@
+#include "adjpma.h"
 #include "adjList.h"
 #include "csr.h"
 #include <iostream>
@@ -11,6 +12,9 @@ using namespace std;
 int main() {
 
 
+	// adjList ob;
+	csr ob;
+	
 	int startNode, endNode, edges;
 	cin >> startNode >> endNode >> edges;
 	
@@ -30,13 +34,22 @@ int main() {
 	
 	int a = edges;
 
+	// ob.insert(3,4);
+	// ob.insert(3,8);
+	// ob.insert(3,1);
+	// ob.print();
+
+
 	auto tb = chrono::steady_clock::now();
 	
 	for(int i = 1; i <= edges; i++) {
 		int s, d;
 		cin >> s >> d;
+
 		ob.insertInFixedNodelist(s, d);
-		if(i % 500 == 0) {
+		// ob.insert(s, d);
+		if(i%500 == 0) {
+
 			auto ta = chrono::steady_clock::now();
 			auto diff = ta - tb;
 			tb = ta;

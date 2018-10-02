@@ -60,46 +60,26 @@ adjList::adjList(int maxNodes) {
 
 void adjList::insert(int src, int dest) {
 
-	int smallId = -1;
-	int foundAt = -1;
-	for(int i=0;i<nNodes;i++) {
-		if(nodeList[i]->val < src) 
-			smallId = i;
-		if(nodeList[i]->val == src) { 
-			foundAt = i;
-			break;
-		}
-	}
-	if(foundAt == -1) {
-
-		adjNode* n = new adjNode();
-		n->val = src;
-		int* el = (int *)malloc(deflength*sizeof(int));
-		memset(el, 0, deflength*sizeof(int));
-		el[0] = dest;
-		n->edgeList = el;
-		n->elsize = deflength;
-
-		if(nNodes+1 > lNodeList) 
-			expandNodeList();
-
-		int insertAt = smallId+1;
-
-		for(int i = nNodes-1;i >= insertAt;i--) {
-			nodeList[i+1] = nodeList[i];
-		}
-		nodeList[insertAt] = n;
-		nNodes++;
+	int l = 0;
+	int r = nNodes;
+	int m;
+	while(l != r) {
+		m = l + (r - l)/2;
+		if(nodeList[m]->val < src)
+			l = m+1;
+		else 
+			r = m;
 	}
 
-	else {
 
-		int* el = nodeList[foundAt]->edgeList;
-		int eSize = nodeList[foundAt]->elsize;
+	if(l != nNodes && nodeList[l]->val == src) {
+
+		int* el = nodeList[l]->edgeList;
+		int eSize = nodeList[l]->elsize;
 		if(el[eSize-1] != 0) {
-			expandEdgeList(nodeList[foundAt]);
-			el = nodeList[foundAt]->edgeList;
-			eSize = nodeList[foundAt]->elsize;
+			expandEdgeList(nodeList[l]);
+			el = nodeList[l]->edgeList;
+			eSize = nodeList[l]->elsize;
 		}
 
 		int smallId = -1;
@@ -120,6 +100,31 @@ void adjList::insert(int src, int dest) {
 			popped = tmp;
 		}
 		el[i] = popped;
+
+		
+	}
+
+	else {
+
+		adjNode* n = new adjNode();
+		n->val = src;
+		int* el = (int *)malloc(deflength*sizeof(int));
+		memset(el, 0, deflength*sizeof(int));
+		el[0] = dest;
+		n->edgeList = el;
+		n->elsize = deflength;
+
+		if(nNodes+1 > lNodeList) 
+			expandNodeList();
+
+		int insertAt = l;
+
+		for(int i = nNodes-1;i >= insertAt;i--) {
+			nodeList[i+1] = nodeList[i];
+		}
+		nodeList[insertAt] = n;
+		nNodes++;
+		
 	}
 	return;
 }
