@@ -3,6 +3,9 @@
 #include <iostream>
 #include <string.h>
 #include <stdio.h>
+#include <vector>
+#include <deque>
+#include <tuple>
 
 using namespace std;
 
@@ -112,8 +115,6 @@ void adjList::insert(int src, int dest) {
 			popped = tmp;
 		}
 		el[i] = popped;
-
-		
 	}
 
 	else {
@@ -129,7 +130,6 @@ void adjList::insert(int src, int dest) {
 		this->nodeList[insertAt] = this->createAdjNode(src);
 		this->nodeList[insertAt]->edgeList[0] = dest;
 		this->nNodes++;
-		
 	}
 	return;
 }
@@ -140,6 +140,7 @@ void adjList::insertInFixedNodelist(int src, int dest) {
 	if(this->nodeList[src] == NULL) {
 		this->nodeList[src] = this->createAdjNode(src);		
 		this->nodeList[src]->edgeList[0] = dest;
+		this->nNodes++;
 	}
 	else {
 		int* el = nodeList[src]->edgeList;
@@ -170,6 +171,162 @@ void adjList::insertInFixedNodelist(int src, int dest) {
 		el[i] = popped;
 	}
 }
+
+
+void adjList::k2hops(int iter) {
+
+	// printf("in khops, nNodes : %d\n", this->	nNodes);
+
+	deque< tuple <int, int, int> > opr; 
+	vector< tuple <int, int, int> > fnl; 
+	tuple <int, int, int> retrv;
+
+	while(fnl.size() < iter) {
+		int r = rand() % this->lNodeList;
+		while(this->nodeList[r] == NULL) 
+			r = rand() % this->lNodeList;
+
+		int val = this->nodeList[r]->val;
+		opr.push_back(make_tuple(val, -1, -1));
+
+		// printf("opr size : %d\n", opr.size());
+
+		while(opr.size() != 0) {
+			retrv = opr.front();
+			opr.pop_front();
+
+
+			int noe = -1;
+			int head;
+			if(get<0>(retrv) != -1) {
+				noe = 0;
+				head = get<0>(retrv);
+				// printf("1 ele in retrv\n");
+			}
+			if(get<1>(retrv) != -1) {
+				noe = 1;
+				head = get<1>(retrv);
+			}
+
+			int l = 0;
+			int r = this->nNodes;
+			int m;
+			while(l != r) {
+				m = l + (r - l)/2;
+				if(nodeList[m]->val < head)
+					l = m+1;
+				else 
+					r = m;
+			}
+
+			// printf("found node at %d\n", l);
+
+			if(l != this->nNodes && this->nodeList[l]->val == head) {
+				int *el = this->nodeList[l]->edgeList;
+				int elSize = this->nodeList[l]->elsize;
+				// printf("elSize : %d\n", elSize);
+				for(int i=0; i < elSize && el[i] != 0; i++) {
+					if(noe == 1) {
+						get<2>(retrv) = el[i];
+						fnl.push_back(make_tuple(get<0>(retrv), get<1>(retrv), get<2>(retrv)));
+						if(fnl.size() >= iter)
+							break;
+						 	// printf("completed %d %d %d\n", get<0>(retrv), get<1>(retrv), get<2>(retrv));
+					}
+					else if(noe == 0) {
+						get<1>(retrv) = el[i];
+						opr.push_back(make_tuple(get<0>(retrv), get<1>(retrv), -1));
+					}
+				}
+			}
+		}
+		// cout << fnl.size() << "\n";
+	}
+}
+
+
+void adjList::k3hops(int iter) {
+
+	// printf("in khops, nNodes : %d\n", this->	nNodes);
+
+	deque< tuple <int, int, int, int> > opr; 
+	vector< tuple <int, int, int, int> > fnl; 
+	tuple <int, int, int, int> retrv;
+
+	while(fnl.size() < iter) {
+		int r = rand() % this->lNodeList;
+		while(this->nodeList[r] == NULL) 
+			r = rand() % this->lNodeList;
+
+		int val = this->nodeList[r]->val;
+		opr.push_back(make_tuple(val, -1, -1, -1));
+
+		// printf("opr size : %d\n", opr.size());
+
+		while(opr.size() != 0) {
+			retrv = opr.front();
+			opr.pop_front();
+
+			// printf("retrv %d %d %d %d\n", get<0>(retrv), get<1>(retrv), get<2>(retrv), get<3>(retrv));
+
+			int noe = -1;
+			int head;
+			if(get<0>(retrv) != -1) {
+				noe = 0;
+				head = get<0>(retrv);
+				// printf("1 ele in retrv\n");
+			}
+			if(get<1>(retrv) != -1) {
+				noe = 1;
+				head = get<1>(retrv);
+			}
+			if(get<2>(retrv) != -1) {
+				noe = 2;
+				head = get<2>(retrv);
+			}
+
+			int l = 0;
+			int r = this->nNodes;
+			int m;
+			while(l != r) {
+				m = l + (r - l)/2;
+				if(nodeList[m]->val < head)
+					l = m+1;
+				else 
+					r = m;
+			}
+
+			// printf("found node at %d\n", l);
+
+			if(l != this->nNodes && this->nodeList[l]->val == head) {
+				int *el = this->nodeList[l]->edgeList;
+				int elSize = this->nodeList[l]->elsize;
+				// printf("elSize : %d\n", elSize);
+				for(int i=0; i < elSize && el[i] != 0; i++) {
+					if(noe == 2) {
+						get<3>(retrv) = el[i];
+						fnl.push_back(make_tuple(get<0>(retrv), get<1>(retrv), get<2>(retrv), get<3>(retrv)));
+						if(fnl.size() >= iter)
+							break;
+						// printf("completed %d %d %d %d\n", get<0>(retrv), get<1>(retrv), get<2>(retrv), get<3>(retrv));
+					}
+					else if(noe == 0) {
+						get<1>(retrv) = el[i];
+						opr.push_back(make_tuple(get<0>(retrv), get<1>(retrv), -1, -1));
+						// printf("level 1\n");
+					}
+					else if(noe == 1) {
+						get<2>(retrv) = el[i];
+						opr.push_back(make_tuple(get<0>(retrv), get<1>(retrv), get<2>(retrv), -1));
+						// printf("level 2\n");
+					}
+				}
+			}
+		}
+		// cout << fnl.size() << "\n";
+	}
+}
+
 
 
 void adjList::print() {

@@ -17,7 +17,7 @@ int main() {
 	cin >> startNode >> endNode >> edges;
 	
 	// adjList ob(endNode);
-	adjPma ob;
+	csr ob;
 
 	// ob.insertInFixedNodelist(3, 4);
 	// ob.insertInFixedNodelist(1, 5);
@@ -45,15 +45,27 @@ int main() {
 		int s, d;
 		cin >> s >> d;
 
-		ob.insert(s, d);
-		// ob.insert(s, d);
-		if(i%100 == 0) {
 
-			auto ta = chrono::steady_clock::now();
-			auto diff = ta - tb;
-			tb = ta;
-			cout << chrono::duration <double, milli> (diff).count()*1000 << "\n";
+		ob.insert(s, d);
+		if(i%500 == 0) {
+			// auto ta = chrono::steady_clock::now();
+			// auto diff = ta - tb;
+			// tb = ta;
+			auto t1 = chrono::steady_clock::now();
+			ob.k3hops(100);
+			auto t2 = chrono::steady_clock::now();
+			auto diff = t2 - t1;
+
+			cout << chrono::duration <double, milli> (diff).count() << "\n";
 		}
+
+		// if(i == 3000) {
+		// 	printf("3k insertions done.\n");
+		// 	break;
+		// }
 	}
+	// ob.print();
+	// printf("starting khops.\n");
 
 }
+
