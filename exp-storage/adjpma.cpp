@@ -8,62 +8,70 @@
 using namespace std;
 
 adjNodePma::adjNodePma() {
-	val = -1;
-	edgeList = NULL;
+	this->val = -1;
+	this->edgeList = NULL;
 } 
 
 void adjPma::expandNodeList() {
-	int newSize = (int)lNodeList*multiplier;
+	int newSize = (int)this->lNodeList*multiplier;
 	adjNodePma** newNodeList = (adjNodePma**)malloc(newSize*sizeof(adjNodePma*));
 	for(int i=0;i<nNodes;i++) 
-		newNodeList[i] = nodeList[i];
-	free(nodeList);
-	nodeList = newNodeList;
-	lNodeList = newSize;
+		newNodeList[i] = this->nodeList[i];
+	free(this->nodeList);
+	this->nodeList = newNodeList;
+	this->lNodeList = newSize;
 	return;
 }
 
 
 adjPma::adjPma() {
-	deflength = 2;
-	multiplier = 1.5;
-	nodeList = NULL;
-	lNodeList = 0;
-	nNodes = -1;
-	nodeList = (adjNodePma**)malloc(deflength*sizeof(adjNodePma*));
-	nNodes = 0;
-	lNodeList = deflength;
+	this->deflength = 2;
+	this->multiplier = 1.5;
+	this->nodeList = NULL;
+	this->lNodeList = 0;
+	this->nNodes = -1;
+	this->nodeList = (adjNodePma**)malloc(this->deflength*sizeof(adjNodePma*));
+	this->nNodes = 0;
+	this->lNodeList = deflength;
+}
 
+adjPma::adjPma(int maxNodes) {
+	this->deflength = 2;
+	this->multiplier = 1.5;
+	this->nodeList = (adjNodePma**)malloc((maxNodes+1)*sizeof(adjNodePma*));
+	this->lNodeList = maxNodes;
+	this->nNodes = -1;
+	this->nNodes = 0;
+}
+
+
+adjNodePma* adjPma::createAdjNodePma(int src) {
+	adjNodePma* n = new adjNodePma();
+	n->val = src;
+	n->edgeList = new pma(deflength, 1);
+	return n;
 }
 
 
 void adjPma::insert(int src, int dest) {
 
 	int l = 0;
-	int r = nNodes;
+	int r = this->nNodes;
 	int m;
 	while(l != r) {
 		m = l + (r - l)/2;
-		if(nodeList[m]->val < src)
+		if(this->nodeList[m]->val < src)
 			l = m+1;
 		else 
 			r = m;
 	}
 
-	if(l != nNodes && nodeList[l]->val == src) {
-		
-		pma* el = nodeList[l]->edgeList;
+	if(l != this->nNodes && this->nodeList[l]->val == src) {
+		pma* el = this->nodeList[l]->edgeList;
 		el->insert(dest);
-
 	}
-
 	else {
 		int insertAt = l;
-
-		adjNodePma* n = new adjNodePma();
-		n->val = src;
-		n->edgeList = new pma(deflength, 0.9);
-		n->edgeList->insert(dest);
 
 		if(nNodes+1 > lNodeList) 
 			expandNodeList();
@@ -71,9 +79,24 @@ void adjPma::insert(int src, int dest) {
 		for(int i = nNodes-1;i >= insertAt;i--) {
 			nodeList[i+1] = nodeList[i];
 		}
-		nodeList[insertAt] = n;
+		nodeList[insertAt] = this->createAdjNodePma(src);
+		nodeList[insertAt]->edgeList->insert(dest);
 		nNodes++;
 		
+	}
+	return;
+}
+
+void adjPma::insertInFixedNodelist(int src, int dest) {
+
+	if(this->nodeList[src] != NULL) {
+		pma* el = this->nodeList[src]->edgeList;
+		el->insert(dest);
+	}
+	else {
+		nodeList[src] = this->createAdjNodePma(src);
+		nodeList[src]->edgeList->insert(dest);
+		nNodes++;
 	}
 	return;
 }

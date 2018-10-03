@@ -30,6 +30,7 @@ class adjList : public graphCon {
 
 		void expandNodeList();
 		void expandEdgeList(adjNode* node);
+		adjNode* createAdjNode(int src);
 
 	public :
 

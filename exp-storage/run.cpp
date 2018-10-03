@@ -12,13 +12,12 @@ using namespace std;
 int main() {
 
 
-	// adjList ob;
-	csr ob;
 	
 	int startNode, endNode, edges;
 	cin >> startNode >> endNode >> edges;
 	
-	csr ob(endNode);
+	// adjList ob(endNode);
+	adjPma ob;
 
 	// ob.insertInFixedNodelist(3, 4);
 	// ob.insertInFixedNodelist(1, 5);
@@ -46,9 +45,9 @@ int main() {
 		int s, d;
 		cin >> s >> d;
 
-		ob.insertInFixedNodelist(s, d);
+		ob.insert(s, d);
 		// ob.insert(s, d);
-		if(i%500 == 0) {
+		if(i%100 == 0) {
 
 			auto ta = chrono::steady_clock::now();
 			auto diff = ta - tb;

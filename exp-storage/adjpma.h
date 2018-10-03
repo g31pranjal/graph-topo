@@ -29,12 +29,14 @@ class adjPma : public graphCon {
 		int nNodes;
 
 		void expandNodeList();
-		// void expandEdgeList(adjNode* node);
+		adjNodePma* createAdjNodePma(int src);
 
 	public :
 
 		adjPma();
+		adjPma(int maxNodes);
 		void insert(int src, int dest);
+		void insertInFixedNodelist(int src, int dest);
 		void print();
 
 };

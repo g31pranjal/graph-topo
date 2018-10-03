@@ -2,32 +2,33 @@
 #include "adjList.h"
 #include <iostream>
 #include <string.h>
+#include <stdio.h>
 
 using namespace std;
 
 
 adjNode::adjNode() {
-	val = -1;
-	edgeList = NULL;
-	elsize = 0;
+	this->val = -1;
+	this->edgeList = NULL;
+	this->elsize = 0;
 } 
 
 
 void adjList::expandNodeList() {			
-	int newSize = (int)lNodeList*multiplier;
+	int newSize = (int)this->lNodeList*this->multiplier;
 	adjNode** newNodeList = (adjNode**)malloc(newSize*sizeof(adjNode*));
-	for(int i=0;i<nNodes;i++) 
-		newNodeList[i] = nodeList[i];
-	free(nodeList);
-	nodeList = newNodeList;
-	lNodeList = newSize;
+	for(int i=0;i<this->nNodes;i++) 
+		newNodeList[i] = this->nodeList[i];
+	free(this->nodeList);
+	this->nodeList = newNodeList;
+	this->lNodeList = newSize;
 	return;
 }
 
 
 void adjList::expandEdgeList(adjNode* node) {
 	int oldSize = node->elsize;
-	int newSize = int(oldSize*multiplier);
+	int newSize = int(oldSize*this->multiplier);
 	int* el = (int *)malloc(newSize*sizeof(int));
 	memset(el, 0, newSize*sizeof(int));
 	for(int i=0;i<oldSize;i++)
@@ -40,28 +41,39 @@ void adjList::expandEdgeList(adjNode* node) {
 
 
 adjList::adjList() {
-	deflength = 2;
-	multiplier = 1.5;
-	nodeList = (adjNode**)malloc(deflength*sizeof(adjNode*));
-	nNodes = 0;
-	lNodeList = deflength;
+	this->deflength = 2;
+	this->multiplier = 1.5;
+	this->nodeList = (adjNode**)malloc(deflength*sizeof(adjNode*));
+	this->nNodes = 0;
+	this->lNodeList = deflength;
 }
 
 
 adjList::adjList(int maxNodes) {
-	deflength = 2;
-	multiplier = 1.5;
-	nodeList = (adjNode**)malloc((maxNodes+1)*sizeof(adjNode*));
+	this->deflength = 2;
+	this->multiplier = 1.5;
+	this->nodeList = (adjNode**)malloc((maxNodes+1)*sizeof(adjNode*));
 	memset(nodeList, 0, (maxNodes+1)*sizeof(adjNode*));
-	nNodes = 0;
-	lNodeList = maxNodes+1;
+	this->nNodes = 0;
+	this->lNodeList = maxNodes+1;
+}
+
+
+adjNode* adjList::createAdjNode(int src) {
+	adjNode* n = new adjNode();
+	n->val = src;
+	int* el = (int *)malloc(this->deflength*sizeof(int));
+	memset(el, 0, this->deflength*sizeof(int));
+	n->edgeList = el;
+	n->elsize = this->deflength;
+	return n;
 }
 
 
 void adjList::insert(int src, int dest) {
 
 	int l = 0;
-	int r = nNodes;
+	int r = this->nNodes;
 	int m;
 	while(l != r) {
 		m = l + (r - l)/2;
@@ -72,14 +84,14 @@ void adjList::insert(int src, int dest) {
 	}
 
 
-	if(l != nNodes && nodeList[l]->val == src) {
+	if(l != this->nNodes && this->nodeList[l]->val == src) {
 
-		int* el = nodeList[l]->edgeList;
-		int eSize = nodeList[l]->elsize;
+		int* el = this->nodeList[l]->edgeList;
+		int eSize = this->nodeList[l]->elsize;
 		if(el[eSize-1] != 0) {
-			expandEdgeList(nodeList[l]);
-			el = nodeList[l]->edgeList;
-			eSize = nodeList[l]->elsize;
+			expandEdgeList(this->nodeList[l]);
+			el = this->nodeList[l]->edgeList;
+			eSize = this->nodeList[l]->elsize;
 		}
 
 		int smallId = -1;
@@ -106,41 +118,28 @@ void adjList::insert(int src, int dest) {
 
 	else {
 
-		adjNode* n = new adjNode();
-		n->val = src;
-		int* el = (int *)malloc(deflength*sizeof(int));
-		memset(el, 0, deflength*sizeof(int));
-		el[0] = dest;
-		n->edgeList = el;
-		n->elsize = deflength;
-
-		if(nNodes+1 > lNodeList) 
-			expandNodeList();
+		if(this->nNodes+1 > lNodeList) 
+			this->expandNodeList();
 
 		int insertAt = l;
 
-		for(int i = nNodes-1;i >= insertAt;i--) {
-			nodeList[i+1] = nodeList[i];
+		for(int i = this->nNodes-1;i >= insertAt;i--) {
+			this->nodeList[i+1] = this->nodeList[i];
 		}
-		nodeList[insertAt] = n;
-		nNodes++;
+		this->nodeList[insertAt] = this->createAdjNode(src);
+		this->nodeList[insertAt]->edgeList[0] = dest;
+		this->nNodes++;
 		
 	}
 	return;
 }
 
+
 void adjList::insertInFixedNodelist(int src, int dest) {
 
-	if(nodeList[src] == NULL) {
-		adjNode* n = new adjNode();
-		n->val = src;
-		int* el = (int *)malloc(deflength*sizeof(int));
-		memset(el, 0, deflength*sizeof(int));
-		n->edgeList = el;
-		n->elsize = deflength;
-		nodeList[src] = n;
-		
-		el[0] = dest;
+	if(this->nodeList[src] == NULL) {
+		this->nodeList[src] = this->createAdjNode(src);		
+		this->nodeList[src]->edgeList[0] = dest;
 	}
 	else {
 		int* el = nodeList[src]->edgeList;
