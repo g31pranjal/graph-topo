@@ -33,7 +33,7 @@ struct pma {
 		pma(int capacity, double gub);
 		void insert(int v);
 		void print();
-
+		vector<int> linearTraverse();
 };
 
 int log2(int n);

@@ -37,6 +37,7 @@ class adjPma : public graphCon {
 		adjPma(int maxNodes);
 		void insert(int src, int dest);
 		void insertInFixedNodelist(int src, int dest);
+		void khops(int k, int iter, int seed);
 		void print();
 
 };

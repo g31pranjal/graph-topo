@@ -6,6 +6,8 @@
 #include <vector>
 #include <deque>
 #include <tuple>
+#include <ctime>
+#include <chrono>
 
 using namespace std;
 
@@ -173,44 +175,59 @@ void adjList::insertInFixedNodelist(int src, int dest) {
 }
 
 
-void adjList::k2hops(int iter) {
+void adjList::khops(int k, int iter, int seed) {
 
-	// printf("in khops, nNodes : %d\n", this->	nNodes);
+	// printf("in khops, nNodes : %d\n", this->nNodes);
 
-	deque< tuple <int, int, int> > opr; 
-	vector< tuple <int, int, int> > fnl; 
-	tuple <int, int, int> retrv;
-
+	if(seed == -1 ) 
+		srand(time(NULL));
+	else 
+		srand(seed);
+	
+	deque< vector <int> > opr;
+	vector< vector <int> > fnl;
+	vector <int> retrv, tmp;
+	int broke = 0;
+	// chrono::steady_clock::duration t;
+	// t = t-t;
+	// int rndc = 0;
+	
 	while(fnl.size() < iter) {
+		// printf("fnl size %d \n", fnl.size());	
+		
 		int r = rand() % this->lNodeList;
-		while(this->nodeList[r] == NULL) 
+		while(this->nodeList[r] == NULL) {
 			r = rand() % this->lNodeList;
+			// printf("randing\n");
+		}
 
+		// rndc++;
+
+		
+		// printf("reaching.\n");
 		int val = this->nodeList[r]->val;
-		opr.push_back(make_tuple(val, -1, -1));
+		tmp.push_back(val);
+		opr.push_back(tmp);
+		tmp.clear();
 
 		// printf("opr size : %d\n", opr.size());
 
 		while(opr.size() != 0) {
 			retrv = opr.front();
 			opr.pop_front();
+			
+			// printf("retrv ");
+			// for(int k=0;k<retrv.size();k++)
+			// 	printf("%d ", retrv[k]);
+			// printf("\n");
 
-
-			int noe = -1;
-			int head;
-			if(get<0>(retrv) != -1) {
-				noe = 0;
-				head = get<0>(retrv);
-				// printf("1 ele in retrv\n");
-			}
-			if(get<1>(retrv) != -1) {
-				noe = 1;
-				head = get<1>(retrv);
-			}
+			int noe = retrv.size();
+			int head = retrv[retrv.size() - 1];
 
 			int l = 0;
 			int r = this->nNodes;
 			int m;
+			
 			while(l != r) {
 				m = l + (r - l)/2;
 				if(nodeList[m]->val < head)
@@ -225,106 +242,53 @@ void adjList::k2hops(int iter) {
 				int *el = this->nodeList[l]->edgeList;
 				int elSize = this->nodeList[l]->elsize;
 				// printf("elSize : %d\n", elSize);
+				// auto t1 = chrono::steady_clock::now();
 				for(int i=0; i < elSize && el[i] != 0; i++) {
-					if(noe == 1) {
-						get<2>(retrv) = el[i];
-						fnl.push_back(make_tuple(get<0>(retrv), get<1>(retrv), get<2>(retrv)));
-						if(fnl.size() >= iter)
-							break;
-						 	// printf("completed %d %d %d\n", get<0>(retrv), get<1>(retrv), get<2>(retrv));
+					// retrv.push_back(el[i]);
+					// printf("connected to : %d\n", el[i]);
+					if(noe < k) {
+						if( opr.size() < 4000) {
+							opr.push_back(retrv);
+							opr[opr.size()-1].push_back(el[i]);
+						}
 					}
-					else if(noe == 0) {
-						get<1>(retrv) = el[i];
-						opr.push_back(make_tuple(get<0>(retrv), get<1>(retrv), -1));
+					else {
+						fnl.push_back(retrv);
+						fnl[fnl.size()-1].push_back(el[i]);
+						// printf("fnl ");
+						// for(int k=0;k<fnl[fnl.size()-1].size();k++)
+						// 	printf("%d ", fnl[fnl.size()-1][k]);
+						// printf("\n");
+						// printf("fnl size : %d\n", fnl.size());
+						if(fnl.size() > iter)
+							break;
 					}
 				}
+				// printf("... opr : %d\n", opr.size());
+				// printf("# : %d\n", elSize);
+				// rndc++;
+				// auto t2 = chrono::steady_clock::now();
+				// t = t + t2 - t1;
+				// printf("..\n");
+				retrv.clear();
+				if(fnl.size() > iter)
+					break;
 			}
+			else {
+				// fnl.push_back(retrv);
+				// printf("broke.\n");
+				broke++;
+			}
+		}
+		if(broke > this->nNodes){
+			// printf("overflow @ nodes %d.\n", nNodes);
+			break;
 		}
 		// cout << fnl.size() << "\n";
 	}
-}
 
-
-void adjList::k3hops(int iter) {
-
-	// printf("in khops, nNodes : %d\n", this->	nNodes);
-
-	deque< tuple <int, int, int, int> > opr; 
-	vector< tuple <int, int, int, int> > fnl; 
-	tuple <int, int, int, int> retrv;
-
-	while(fnl.size() < iter) {
-		int r = rand() % this->lNodeList;
-		while(this->nodeList[r] == NULL) 
-			r = rand() % this->lNodeList;
-
-		int val = this->nodeList[r]->val;
-		opr.push_back(make_tuple(val, -1, -1, -1));
-
-		// printf("opr size : %d\n", opr.size());
-
-		while(opr.size() != 0) {
-			retrv = opr.front();
-			opr.pop_front();
-
-			// printf("retrv %d %d %d %d\n", get<0>(retrv), get<1>(retrv), get<2>(retrv), get<3>(retrv));
-
-			int noe = -1;
-			int head;
-			if(get<0>(retrv) != -1) {
-				noe = 0;
-				head = get<0>(retrv);
-				// printf("1 ele in retrv\n");
-			}
-			if(get<1>(retrv) != -1) {
-				noe = 1;
-				head = get<1>(retrv);
-			}
-			if(get<2>(retrv) != -1) {
-				noe = 2;
-				head = get<2>(retrv);
-			}
-
-			int l = 0;
-			int r = this->nNodes;
-			int m;
-			while(l != r) {
-				m = l + (r - l)/2;
-				if(nodeList[m]->val < head)
-					l = m+1;
-				else 
-					r = m;
-			}
-
-			// printf("found node at %d\n", l);
-
-			if(l != this->nNodes && this->nodeList[l]->val == head) {
-				int *el = this->nodeList[l]->edgeList;
-				int elSize = this->nodeList[l]->elsize;
-				// printf("elSize : %d\n", elSize);
-				for(int i=0; i < elSize && el[i] != 0; i++) {
-					if(noe == 2) {
-						get<3>(retrv) = el[i];
-						fnl.push_back(make_tuple(get<0>(retrv), get<1>(retrv), get<2>(retrv), get<3>(retrv)));
-						if(fnl.size() >= iter)
-							break;
-						// printf("completed %d %d %d %d\n", get<0>(retrv), get<1>(retrv), get<2>(retrv), get<3>(retrv));
-					}
-					else if(noe == 0) {
-						get<1>(retrv) = el[i];
-						opr.push_back(make_tuple(get<0>(retrv), get<1>(retrv), -1, -1));
-						// printf("level 1\n");
-					}
-					else if(noe == 1) {
-						get<2>(retrv) = el[i];
-						opr.push_back(make_tuple(get<0>(retrv), get<1>(retrv), get<2>(retrv), -1));
-						// printf("level 2\n");
-					}
-				}
-			}
-		}
-		// cout << fnl.size() << "\n";
-	}
+	// cout << ".. rounding " << chrono::duration <double, milli> (t).count() << "\n";
+	// printf("rnd cnt %d\n", rndc);
 }
 
 

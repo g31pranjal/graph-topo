@@ -74,13 +74,19 @@ csr::csr(int maxNodes) {
 }
 
 
-void csr::k2hops(int iter) {
+void csr::khops(int k, int iter, int seed) {
 
 	// printf("in khops, nNodes : %d\n", this->	nNodes);
 
-	deque< tuple <int, int, int> > opr; 
-	vector< tuple <int, int, int> > fnl; 
-	tuple <int, int, int> retrv;
+	if(seed == -1 ) 
+		srand(time(NULL));
+	else 
+		srand(seed);
+
+	deque< vector <int> > opr; 
+	vector< vector <int> > fnl; 
+	vector <int> retrv, tmp;
+	int broke = 0;
 
 	while(fnl.size() < iter) {
 		int r = rand() % this->lNodeList;
@@ -88,7 +94,9 @@ void csr::k2hops(int iter) {
 			r = rand() % this->lNodeList;
 
 		int val = this->nodeList[r];
-		opr.push_back(make_tuple(val, -1, -1));
+		tmp.push_back(val);
+		opr.push_back(tmp);
+		tmp.clear();
 
 		// printf("opr size : %d\n", opr.size());
 
@@ -96,18 +104,8 @@ void csr::k2hops(int iter) {
 			retrv = opr.front();
 			opr.pop_front();
 
-
-			int noe = -1;
-			int head;
-			if(get<0>(retrv) != -1) {
-				noe = 0;
-				head = get<0>(retrv);
-				// printf("1 ele in retrv\n");
-			}
-			if(get<1>(retrv) != -1) {
-				noe = 1;
-				head = get<1>(retrv);
-			}
+			int head = retrv[retrv.size() - 1];
+			int noe = retrv.size();
 
 			int l = 0;
 			int r = this->nNodes;
@@ -131,106 +129,35 @@ void csr::k2hops(int iter) {
 					rh = this->nEdges;
 				
 				for(int i=rl; i < rh; i++) {
-					if(noe == 1) {
-						get<2>(retrv) = this->edgeList[i];
-						fnl.push_back(make_tuple(get<0>(retrv), get<1>(retrv), get<2>(retrv)));
-						if(fnl.size() >= iter)
-							break;
-						 	// printf("completed %d %d %d\n", get<0>(retrv), get<1>(retrv), get<2>(retrv));
+					if(noe < k) {
+						if(opr.size() < 2000) {
+							opr.push_back(retrv);
+							opr[opr.size()-1].push_back(this->edgeList[i]);
+						}
 					}
-					else if(noe == 0) {
-						get<1>(retrv) = this->edgeList[i];
-						opr.push_back(make_tuple(get<0>(retrv), get<1>(retrv), -1));
+					else {
+						fnl.push_back(retrv);
+						fnl[fnl.size()-1].push_back(this->edgeList[i]);
+						// printf("fnl ");
+						// for(int k=0;k<fnl[fnl.size()-1].size();k++)
+						// 	printf("%d ", fnl[fnl.size()-1][k]);
+						// printf("\n");
+						if(fnl.size() > iter)
+							break;
 					}
 				}
+				retrv.clear();
+				if(fnl.size() > iter)
+					break;
+			}
+			else {
+
+				broke++;
 			}
 		}
-		// cout << fnl.size() << "\n";
-	}
-}
-
-
-void csr::k3hops(int iter) {
-
-	// printf("in khops, nNodes : %d\n", this->	nNodes);
-
-	deque< tuple <int, int, int, int> > opr; 
-	vector< tuple <int, int, int, int> > fnl; 
-	tuple <int, int, int, int> retrv;
-
-	while(fnl.size() < iter) {
-		int r = rand() % this->lNodeList;
-		while(this->nodeList[r] == 0) 
-			r = rand() % this->lNodeList;
-
-		int val = this->nodeList[r];
-		opr.push_back(make_tuple(val, -1, -1, -1));
-
-		// printf("opr size : %d\n", opr.size());
-
-		while(opr.size() != 0) {
-			retrv = opr.front();
-			opr.pop_front();
-
-			// printf("retrv %d %d %d %d\n", get<0>(retrv), get<1>(retrv), get<2>(retrv), get<3>(retrv));
-
-			int noe = -1;
-			int head;
-			if(get<0>(retrv) != -1) {
-				noe = 0;
-				head = get<0>(retrv);
-				// printf("1 ele in retrv\n");
-			}
-			if(get<1>(retrv) != -1) {
-				noe = 1;
-				head = get<1>(retrv);
-			}
-			if(get<2>(retrv) != -1) {
-				noe = 2;
-				head = get<2>(retrv);
-			}
-
-			int l = 0;
-			int r = this->nNodes;
-			int m;
-			while(l != r) {
-				m = l + (r - l)/2;
-				if(nodeList[m] < head)
-					l = m+1;
-				else 
-					r = m;
-			}
-
-			// printf("found node at %d\n", l);
-
-			if(l != this->nNodes && this->nodeList[l] == head) {
-				int rl = this->refList[l];
-				int rh = rl;
-				if(l+1 < this->nNodes)
-					rh = this->refList[l+1];
-				else 
-					rh = this->nEdges;
-				
-				for(int i=rl; i < rh; i++) {
-					if(noe == 2) {
-						get<3>(retrv) = this->edgeList[i];
-						fnl.push_back(make_tuple(get<0>(retrv), get<1>(retrv), get<2>(retrv), get<3>(retrv)));
-						if(fnl.size() >= iter)
-							break;
-						// printf("completed %d %d %d %d\n", get<0>(retrv), get<1>(retrv), get<2>(retrv), get<3>(retrv));
-					}
-					else if(noe == 0) {
-						get<1>(retrv) = this->edgeList[i];
-						opr.push_back(make_tuple(get<0>(retrv), get<1>(retrv), -1, -1));
-						// printf("level 1\n");
-					}
-					else if(noe == 1) {
-						get<2>(retrv) = this->edgeList[i];
-						opr.push_back(make_tuple(get<0>(retrv), get<1>(retrv), get<2>(retrv), -1));
-						// printf("level 2\n");
-					}
-				}
-			}
+		if(broke > this->nNodes){
+			// printf("overflow @ nodes %d.\n", nNodes);
+			break;
 		}
 		// cout << fnl.size() << "\n";
 	}

@@ -40,8 +40,7 @@ class adjList : public graphCon {
 
 		void insert(int src, int dest);
 		void insertInFixedNodelist (int src, int dest);
-		void k3hops(int iter);
-		void k2hops(int iter);
+		void khops(int k, int iter, int seed);
 		void print();
 
 };
