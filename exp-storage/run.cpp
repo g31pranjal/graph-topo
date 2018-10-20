@@ -6,9 +6,9 @@
 #include <array>
 #include <string.h>
 #include <chrono>
+#include <vector>
 
 using namespace std;
-
 
 int main() {
 
@@ -48,3 +48,4 @@ int main() {
 	// }
 
 }
+

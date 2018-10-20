@@ -3,6 +3,7 @@
 #include <stdlib.h> 
 #include <string.h> 
 #include "pma.h"
+#include <vector>
 
 using namespace std;
 
@@ -227,6 +228,19 @@ void pma::print() {
 		printf("%3d ", this->present[i] == 1 ? this->impl[i] : -1);
 	}
 	printf("\n");
+}
+
+
+vector<int> pma::linearTraverse() {
+	vector<int> a;
+	// printf("%d\n", this->nElems);
+	for(int i = 0;i<this->nElems;i++) {
+		// printf("iter\n");
+		if(this->present[i] == 1)
+			a.push_back(this->impl[i]);
+	}
+	// printf("pushing %d \n", a[a.size()-1]);
+	return a;
 }
 
 // int main() {

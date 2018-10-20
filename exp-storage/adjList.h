@@ -30,11 +30,17 @@ class adjList : public graphCon {
 
 		void expandNodeList();
 		void expandEdgeList(adjNode* node);
+		adjNode* createAdjNode(int src);
 
 	public :
 
 		adjList();
+		
+		adjList(int MaxNode);
+
 		void insert(int src, int dest);
+		void insertInFixedNodelist (int src, int dest);
+		void khops(int k, int iter, int seed);
 		void print();
 
 };
