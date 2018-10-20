@@ -14,8 +14,8 @@ void pcsr::expandNodeList() {
 	int *newRefList = (int *)malloc(newSize*sizeof(int));
 	memset(newRefList, 0, newSize*sizeof(int));
 	for(int i = 0; i < this->nNodes; i++) {
-		newNodeList[i] = nodeList[i];
-		newRefList[i] = refList[i];
+		newNodeList[i] = this->nodeList[i];
+		newRefList[i] = this->refList[i];
 	}
 	free(this->nodeList);
 	free(this->refList);
@@ -41,6 +41,8 @@ pcsr::pcsr() {
 
 
 void pcsr::insert(int src, int dest) {
+
+	printf("pcsr::insert with %d, %d\n", src, dest);
 	
 	int l = 0;
 	int r = nNodes;
@@ -53,13 +55,13 @@ void pcsr::insert(int src, int dest) {
 			r = m;
 	}
 
-	printf("insert called... l : %d, nNodes : %d\n", l, nNodes);
-
 	if(l != nNodes && nodeList[l] == src) {
+		// this is the general case of insertion
 		edgeList->insert(refList[l], dest);
 	}
 	else {
 
+		// something seems fishy, but lets leave this 
 		if(nNodes > lNodeList) { 
 			expandNodeList();
 		}
@@ -72,63 +74,40 @@ void pcsr::insert(int src, int dest) {
 		nodeList[insertAt] = src;
 		this->nNodes++;
 
-		if(nNodes - 1 == 0) {
-			// case of no elements
-			printf("case : no elements in nodelist\n");
-			edgeList->firstInsert(0, 1, dest, insertAt);
-		}
-		else if(l == nNodes - 1) {
-			// case of storing at the end 
-			printf("case : inserting element at end of nodelist\n");
-			edgeList->firstInsert(-1, 2, dest, insertAt);
+		if(nNodes - 1 == l) {
+			printf("case : insert in the end, also covers the case of first insertion\n");
+			while(!edgeList->initInsert(1, 0, dest, insertAt) ) {
+				printf(".\n");
+				// try again after rebalancing is done.
+			}
 		}
 		else {
-			// storing in the middle.
-			printf("3\n");
-			edgeList->firstInsert(refList[insertAt], 3, dest, insertAt);
+			printf("case : store somewhere in the middle\n");
+			while(!edgeList->initInsert(2, refList[insertAt], dest, insertAt)) {
+				int l = 0;
+				int r = nNodes;
+				int m;
+				while(l != r) {
+					m = l + (r - l)/2;
+					if(nodeList[m] < src)
+						l = m+1;
+					else 
+						r = m;
+				}
+				insertAt = l;
+			}
 		}
-
-		
-		
-
-		// if(l == nNodes)
-		// 	l = nNodes - 1;
-		
-		// refList[insertAt] = 0;
-		// nNodes++;
-
-		// edgeList.firstInsert()
-
-		// int insertAt = l;
-
-		// adjNodePma* n = new adjNodePma();
-		// n->val = src;
-		// n->edgeList = new pma(deflength, 0.9);
-		// n->edgeList->insert(dest);
-
-
 		
 	}
 }
 
+
 void pcsr::print() {
-
+	printf("pcsr::print\n");
 	printf("nodes : %d\n", nNodes);
-
-	for(int i=0;i<nNodes;i++) {
-		// int start = refList[i];
-		// int end;
-		// if(i==nNodes-1)
-		// 	end = nEdges;
-		// else
-		// 	end = refList[i+1];
-
+	for(int i=0;i<nNodes;i++)
 		cout<<nodeList[i]<<" , "<<refList[i]<<"\n";
-		this->edgeList->print();
-		// for(int j=start;j<end;j++)
-		// 	cout<<edgeList[j]<<" ";
-		// cout<<"\n"; 
-	}
+	this->edgeList->print();
 	cout<<"---\n";
 }
 

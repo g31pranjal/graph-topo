@@ -224,6 +224,8 @@ void pma::insert(int v) {
 } 
 
 void pma::print() {
+	printf("chunk size %d\n", this->chunk_size );
+	printf("global upperbound %lf\n", this->global_upperbound );
 	for (int i = 0; i < (int)this->capacity; ++i) {
 		printf("%3d ", this->present[i] == 1 ? this->impl[i] : -1);
 	}
@@ -247,45 +249,45 @@ vector<int> pma::linearTraverse() {
 
 // 	pma obj(2,0.9);
 
-// 	for(int i=0;i<50000;i++) {
-// 		int r = rand()%50000000;
-// 		printf("Inserting %d ...\n", r);
-// 		obj.insert(r);
-// 		obj.print();
-// 		printf("----------------------------------------------------\n");
-// 	}
+	// for(int i=0;i<50000;i++) {
+	// 	int r = rand()%50000000;
+	// 	printf("Inserting %d ...\n", r);
+	// 	obj.insert(r);
+	// 	obj.print();
+	// 	printf("----------------------------------------------------\n");
+	// }
 
-// 	// printf("%d", rand());
+	// printf("%d", rand());
 
-// 	// obj.insert(80);
-// 	// obj.print();
-//  //    obj.insert(50);
-// 	// obj.print();
-//  //    obj.insert(70);
-// 	// obj.print();
-//  //    obj.insert(90);
-// 	// obj.print();
-//  //    obj.insert(65);
-// 	// obj.print();
-// 	// obj.print();
-//  //    obj.insert(85);
-// 	// obj.print();
-//  //    obj.insert(10);
-// 	// obj.print();
-//  //    obj.insert(21);
-// 	// obj.print();
-//  //    obj.insert(22);
-// 	// obj.print();
-//  //    obj.insert(20);
-// 	// obj.print();
-//  //    obj.insert(24);
-// 	// obj.print();
-//  //    obj.insert(15);
-// 	// obj.print();
-//  //    obj.insert(17);
-// 	// obj.print();
-//  //    obj.insert(23);
-// 	// obj.print();
+	// obj.insert(80);
+	// obj.print();
+ //    obj.insert(50);
+	// obj.print();
+ //    obj.insert(70);
+	// obj.print();
+ //    obj.insert(90);
+	// obj.print();
+ //    obj.insert(65);
+	// obj.print();
+	// obj.print();
+ //    obj.insert(85);
+	// obj.print();
+ //    obj.insert(10);
+	// obj.print();
+ //    obj.insert(21);
+	// obj.print();
+ //    obj.insert(22);
+	// obj.print();
+ //    obj.insert(20);
+	// obj.print();
+ //    obj.insert(24);
+	// obj.print();
+ //    obj.insert(15);
+	// obj.print();
+ //    obj.insert(17);
+	// obj.print();
+ //    obj.insert(23);
+	// obj.print();
     
 
 // }

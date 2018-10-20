@@ -12,6 +12,8 @@ using namespace std;
 
 int main() {
 
+	printf("main\n");
+
 	pcsr ob;
 	// csr ob;
 	
@@ -20,12 +22,15 @@ int main() {
 	
 	// int a = edges;
 
+	printf("inserting 3,4\n");
 	ob.insert(3,4);
+
+	// ob.insert(3,4);
 	ob.insert(3,5);
 	ob.insert(3,8);
-	ob.insert(3,2);
-	ob.insert(3,11);
-	ob.insert(3,1);
+	// ob.insert(3,2);
+	// ob.insert(3,11);
+	// ob.insert(3,1);
 	ob.insert(5,1);
 
 	// // ob.insert(3,8);
