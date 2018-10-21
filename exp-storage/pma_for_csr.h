@@ -49,6 +49,7 @@ struct pma_for_csr {
 		void insert(int l, int v);
 		bool initInsert(int cas, int insertLoc, int v, int nref);
 		void print();
+		void updateBackref(int ref, int newVal);
 
 };
 

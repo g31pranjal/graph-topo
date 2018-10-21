@@ -39,7 +39,7 @@ pma_for_csr::pma_for_csr(int **reflistadr, int capacity = 2, double gub = 0.7) :
 	++this->nElems;
 	this->endMarkerLoc = 0;
 
-	this->print();
+	// this->print();
 }
 
 void pma_for_csr::init_vars(int capacity) {
@@ -68,7 +68,7 @@ int pma_for_csr::left_interval_boundary(int i, int interval_size) {
 
 void pma_for_csr::resize(int capacity) {
 
-	printf("pma_for_csr::resize to capacity %d\n", capacity);
+	// printf("pma_for_csr::resize to capacity %d\n", capacity);
 
 	assert(capacity > this->capacity);
 	assert(1 << log2(capacity) == capacity);
@@ -77,18 +77,22 @@ void pma_for_csr::resize(int capacity) {
 	int *tmpp = (int *)malloc(capacity*sizeof(int));
 	memset(tmpp, 0, capacity*sizeof(int));
 
-	printf("new cap %d\n", capacity);
+	// printf("new cap %d\n", capacity);
 
 	double d = (double)capacity / this->nElems;
 	int ctr = 0;
 	for (int i = 0; i < (int)this->capacity; ++i) {
 		if (this->present[i]) {
 			int idx = d*(ctr++);
+			// printf("filling at %d\n", idx);
 			tmpp[idx] = 1;
 			tmpi[idx] = this->impl[i];
 			if(tmpi[idx]->typ == 1)
-				if(tmpi[idx]->val != -1)
+				if(tmpi[idx]->val != -1){
+					// printf("old : %d\n", wrapper[0][tmpi[idx]->val]); 
 					wrapper[0][tmpi[idx]->val] = idx;
+					// printf("new : %d\n", wrapper[0][tmpi[idx]->val]); 
+				}
 				else 
 					endMarkerLoc = idx;
 			this->impl[i] = NULL;
@@ -100,6 +104,9 @@ void pma_for_csr::resize(int capacity) {
 	this->impl = tmpi;
 	this->present = tmpp;
 	this->init_vars(capacity);
+
+	// printf("after resizing ...\n");
+	// this->print();
 
 }
 
@@ -114,7 +121,7 @@ void pma_for_csr::get_interval_stats(int left, int level, bool &in_limit, int &s
 	}
 	double q = (double)(sz + 1) / double(w);
 	in_limit = q <= t;
-	printf("%f , %f \n", q, t);
+	// printf("%f , %f \n", q, t);
 }
 
 int pma_for_csr::val_in_chunk(int l, int v) {
@@ -135,7 +142,7 @@ int pma_for_csr::lower_bound(int v) {
 		int l = 0, r = this->nChunks;
 		int m;
 		while (l != r) {
-			printf("l : %d, r : %d \n", l, r);
+			// printf("l : %d, r : %d \n", l, r);
 			m = l + (r-l)/2;
 			int left = left_interval_boundary(m * chunk_size, chunk_size);
 			int pos = val_in_chunk(left, v);
@@ -151,8 +158,8 @@ int pma_for_csr::lower_bound(int v) {
 
 void pma_for_csr::insert_in_window(int rl, int rh, int l, int v) {
 
-	printf("pma_for_csr::insert_in_window rl %d rh %d l %d val %d \n", rl, rh, l, v);
-	printf("rl : %d, rh : %d, l : %d\n", rl, rh, l);
+	// printf("pma_for_csr::insert_in_window rl %d rh %d l %d val %d \n", rl, rh, l, v);
+	// printf("rl : %d, rh : %d, l : %d\n", rl, rh, l);
 
 	this->tmp = (ent **)malloc(this->chunk_size*sizeof(ent *));
 	int ntmp = 0;
@@ -160,11 +167,13 @@ void pma_for_csr::insert_in_window(int rl, int rh, int l, int v) {
 
 	for (int i = l; i < l + this->chunk_size; ++i) {
 		if (this->present[i]) {
-			if(i >= rl && i < rh && !inserted && this->impl[i]->val >= v) {
-				this->tmp[ntmp++] = new ent(v, 0);
-				i--;
-				inserted = true;
-				continue;
+			if(i >= rl && i <= rh && !inserted) {
+				if( (this->impl[i]->typ == 0 && this->impl[i]->val >= v) || (this->impl[i]->typ == 1 && i == rh) ) {
+					this->tmp[ntmp++] = new ent(v, 0);
+					i--;
+					inserted = true;
+					continue;
+				}
 			}
 			this->present[i] = 0;
 			this->tmp[ntmp++] = this->impl[i];
@@ -195,11 +204,13 @@ void pma_for_csr::insert_in_window(int rl, int rh, int l, int v) {
 	// 	this->present[k] = 1;
 	// 	this->impl[k] = tmp[i];
 	// }
+
 	free(this->tmp);
 	++this->nElems;
 }
 
 void pma_for_csr::rebalance_interval(int left, int level) {
+
 	// printf("rebalance_interval(%d, %d)\n", left, level);
 	int w = (1 << level) * this->chunk_size;
 	this->tmp = (ent **)malloc(sizeof(ent*)*w);
@@ -231,7 +242,7 @@ void pma_for_csr::rebalance_interval(int left, int level) {
 
 void pma_for_csr::insert(int rl, int v) {
 
-	printf("pma_for_csr::insert at marker %d value %d\n", rl, v);
+	// printf("pma_for_csr::insert at marker %d value %d\n", rl, v);
 
 	// rl will be the backref, so we increase the value by 1
 	rl = rl + 1;
@@ -288,11 +299,11 @@ void pma_for_csr::insert(int rl, int v) {
 		this->insert(rl - 1, v);
 	}
 
-	this->print();
+	// this->print();
 }
 
-int pma_for_csr::insertMarker(int at, int nref) {
-	printf("pma_for_csr::insertMarker at %d, nref %d\n", at, nref);
+int pma_for_csr::insertMarker(int at, int backref) {
+	// printf("pma_for_csr::insertMarker at %d, backref %d\n", at, backref);
 	
 	int level = 0;
 	int w = this->chunk_size;
@@ -303,16 +314,18 @@ int pma_for_csr::insertMarker(int at, int nref) {
 	this->get_interval_stats(l, level, in_limit, sz);
 
 	if(in_limit) {
+		// printf("in limit\n");
 		
 		this->tmp = (ent **)malloc(this->chunk_size*sizeof(ent *));
 		int ntmp = 0;
 		bool inserted = false;
 
+
 		for (int i = l; i < l + this->chunk_size; ++i) {
 			if (this->present[i]) {
 				if(i == at && !inserted) {
 					assert(this->impl[i]->typ == 1);
-					this->tmp[ntmp++] = new ent(nref, 1);
+					this->tmp[ntmp++] = new ent(backref, 1);
 					inserted = true;
 					i--;
 					continue;
@@ -322,6 +335,7 @@ int pma_for_csr::insertMarker(int at, int nref) {
 				this->impl[i] = NULL;
 			}
 		}
+		++this->nElems;
 		int loc = -1;
 		for(int i=0;i<ntmp;i++) {
 			this->present[l+i] = 1;
@@ -329,9 +343,9 @@ int pma_for_csr::insertMarker(int at, int nref) {
 			if(this->impl[l+i]->typ == 1) {
 				if(this->impl[l+i]->val == -1)
 					endMarkerLoc = l+i;
-				else
+				else 
 					wrapper[0][this->impl[l+i]->val] = l+i;
-				if(this->impl[l+i]->val == nref)
+				if(this->impl[l+i]->val == backref)
 					loc = l+i;
 			}
 			this->tmp[i] = NULL;
@@ -344,40 +358,40 @@ int pma_for_csr::insertMarker(int at, int nref) {
 			level += 1;
 			if (level > this->nLevels) {
 				// failed attempt
-				printf("insert marker failed, increasing base size\n");
+				// printf("insert marker failed, increasing base size\n");
 				this->resize(2 * this->capacity);
-				this->print();
+				// this->print();
 				return -1;
 			}
 
 			l = this->left_interval_boundary(at, w);
 			get_interval_stats(l, level, in_limit, sz);
 		}
-		printf("insert marker failed, rebalancing at %d\n", level);
+		// printf("insert marker failed, rebalancing at %d\n", level);
 		this->rebalance_interval(l, level);
-		this->print();
+		// this->print();
 		return -1;
 	}
 
 }
 
 
-bool pma_for_csr::initInsert(int cas, int insertLoc, int v, int nref) {
+bool pma_for_csr::initInsert(int cas, int insertLoc, int v, int backref) {
 
-	printf("pma_for_csr::initInsert case %d at %d value %d nref %d\n", cas, insertLoc, v, nref);
+	// printf("pma_for_csr::initInsert case %d at %d value %d backref %d\n", cas, insertLoc, v, backref);
 
-	ent *s = new ent(nref, 1);
+	ent *s = new ent(backref, 1);
 	int rl;
 	int result;
 
 	switch(cas) {
 		case 1 :
-			printf("Case 1 : inserting marker just before end marker\n");
-			result = insertMarker(endMarkerLoc, nref);
+			// printf("Case 1 : inserting marker just before end marker\n");
+			result = insertMarker(endMarkerLoc, backref);
 			break;
 		case 2 :	
-			printf("Case 2 : inserting marker in the middle\n");
-			result = insertMarker(insertLoc, nref);
+			// printf("Case 2 : inserting marker in the middle\n");
+			result = insertMarker(insertLoc, backref);
 			break;
 	} 
 			
@@ -388,9 +402,16 @@ bool pma_for_csr::initInsert(int cas, int insertLoc, int v, int nref) {
 	return true;
 } 
 
+void pma_for_csr::updateBackref(int ref, int newVal) {
+	assert(this->present[ref] == 1);
+	assert(this->impl[ref]->typ == 1);
+	this->impl[ref]->val = newVal;
+}
+
 
 void pma_for_csr::print() {
 	printf("pma_for_csr::print\n");
+	printf("chunk size %d\n", this->chunk_size);
 	for (int i = 0; i < (int)this->capacity; ++i) {
 		if(this->present[i])
 			printf("%d\t", this->impl[i]->val);

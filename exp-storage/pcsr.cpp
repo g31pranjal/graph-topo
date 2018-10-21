@@ -36,13 +36,13 @@ pcsr::pcsr() {
 	this->refList = (int *)malloc(deflength*sizeof(int));
 	memset(refList, 0, deflength*sizeof(int));
 	this->lNodeList = deflength;
-	this->edgeList = new pma_for_csr(&refList, 2, 0.9);
+	this->edgeList = new pma_for_csr(&refList, 2, 0.899999);
 }
 
 
 void pcsr::insert(int src, int dest) {
 
-	printf("pcsr::insert with %d, %d\n", src, dest);
+	// printf("pcsr::insert with %d, %d\n", src, dest);
 	
 	int l = 0;
 	int r = nNodes;
@@ -62,7 +62,8 @@ void pcsr::insert(int src, int dest) {
 	else {
 
 		// something seems fishy, but lets leave this 
-		if(nNodes > lNodeList) { 
+		if(nNodes == lNodeList-1) { 
+			// printf(".\n");
 			expandNodeList();
 		}
 
@@ -70,34 +71,27 @@ void pcsr::insert(int src, int dest) {
 		int insertAt = l;
 		for(int i = this->nNodes-1;i >= insertAt;i--) {
 			nodeList[i+1] = nodeList[i];
+			refList[i+1] = refList[i];
+			edgeList->updateBackref(refList[i+1], i+1);
 		}
 		nodeList[insertAt] = src;
+		// refList[insertAt] will be updated in insertMarker for this src.
 		this->nNodes++;
 
+		int backref = insertAt;
 		if(nNodes - 1 == l) {
-			printf("case : insert in the end, also covers the case of first insertion\n");
-			while(!edgeList->initInsert(1, 0, dest, insertAt) ) {
-				printf(".\n");
+			// printf("case : insert in the end, also covers the case of first insertion\n");
+			while(!edgeList->initInsert(1, -1, dest, backref) ) {
 				// try again after rebalancing is done.
 			}
 		}
 		else {
-			printf("case : store somewhere in the middle\n");
-			while(!edgeList->initInsert(2, refList[insertAt], dest, insertAt)) {
-				int l = 0;
-				int r = nNodes;
-				int m;
-				while(l != r) {
-					m = l + (r - l)/2;
-					if(nodeList[m] < src)
-						l = m+1;
-					else 
-						r = m;
-				}
-				insertAt = l;
+			// printf("case : store somewhere in the middle\n");
+			
+			while(!edgeList->initInsert(2, refList[insertAt+1], dest, backref)) {
+				;
 			}
 		}
-		
 	}
 }
 
